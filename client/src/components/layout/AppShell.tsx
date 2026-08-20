@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import MobileNav from "./MobileNav";
 import Sidebar from "./Sidebar";
+import PageLoader from "../common/PageLoader";
 
 function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -24,10 +25,22 @@ function AppShell() {
         bg-slate-50
         text-slate-950
         antialiased
+
         dark:bg-slate-950
         dark:text-white
       "
     >
+      {/* ============================================================
+          PAGE LOADER
+
+          Appears automatically whenever React Router changes route.
+
+          It is fixed to the viewport and sits above the entire
+          application because of its high z-index.
+      ============================================================ */}
+
+      <PageLoader />
+
       {/* ============================================================
           DESKTOP SIDEBAR
 
@@ -52,19 +65,13 @@ function AppShell() {
         "
       >
         {/* ==========================================================
-            FIXED HEADER
-
-            Header is fixed independently from the content.
-            The main content below has top padding equal to the
-            header height.
+            HEADER
         ========================================================== */}
 
         <Header onMenuClick={openMobileNavigation} />
 
         {/* ==========================================================
             SCROLLING CONTENT
-
-            This is the only normal page content.
         ========================================================== */}
 
         <main
