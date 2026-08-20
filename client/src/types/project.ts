@@ -9,27 +9,27 @@ export interface ProjectReference {
   name: string;
 }
 
+export interface ProjectDeveloperReference {
+  id: string;
+  name: string;
+  title?: string | null;
+}
+
 export interface Project {
   id: string;
   name: string;
-  description?: string;
-  url?: string;
-  status?: string;
+
+  description?: string | null;
+
+  url?: string | null;
+
+  status?: string | null;
 
   technologies: ProjectReference[];
 
-  developers: Array<{
-    id: string;
-    name: string;
-  }>;
+  developers: ProjectDeveloperReference[];
 
-  domains: Array<{
-    id: string;
-    name: string;
-  }>;
+  domains: ProjectReference[];
 
-  companies: Array<{
-    id: string;
-    name: string;
-  }>;
+  companies: ProjectReference[];
 }

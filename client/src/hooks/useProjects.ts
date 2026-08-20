@@ -2,18 +2,25 @@
 
 
 /**
- * DevGraph — Project Data Hook
+ * DevGraph — Project Data Hooks
  */
 
 import { useQuery } from "@tanstack/react-query";
 
 import { api } from "../lib/api";
 
+import type { ApiResponse, PaginatedResponse } from "../lib/api";
+
+import type { Project } from "../types/project";
+
 export function useProjects(
   page = 1,
   limit = 20,
 ) {
-  return useQuery({
+  return useQuery<
+    PaginatedResponse<Project>,
+    Error
+  >({
     queryKey: [
       "projects",
       page,
@@ -30,12 +37,20 @@ export function useProjects(
   });
 }
 
-export function useProject(id?: string) {
-  return useQuery({
-    queryKey: ["project", id],
+export function useProject(
+  id?: string,
+) {
+  return useQuery<
+    ApiResponse<Project>,
+    Error
+  >({
+    queryKey: [
+      "project",
+      id,
+    ],
 
     queryFn: () =>
-      api.projects.get(id!),
+      api.projects.get(id as string),
 
     enabled: Boolean(id),
 

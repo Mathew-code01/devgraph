@@ -21,30 +21,10 @@ import {
   SEARCH_DEVELOPERS,
 } from "../queries/developers.cypher.js";
 
-/**
- * Safely converts a Neo4j value into a number.
- *
- * Neo4j integer values are normally represented by
- * neo4j.Integer, but this also handles normal numbers
- * and numeric strings defensively.
- */
-function toNumber(value: unknown): number {
-  if (neo4j.isInt(value)) {
-    return value.toNumber();
-  }
-
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value);
-
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  return 0;
-}
+import {
+  serializeNeo4jValue,
+  toNumber,
+} from "../utils/neo4j.js";
 
 /**
  * Retrieves a paginated list of developers.
@@ -103,7 +83,9 @@ export async function getDevelopers(
     return {
       data: result.records.map(
         (record: Neo4jRecord) =>
-          record.get("developer"),
+          serializeNeo4jValue(
+            record.get("developer"),
+          ),
       ),
 
       pagination: {
@@ -144,7 +126,9 @@ export async function getDeveloperById(
       return null;
     }
 
-    return record.get("developer");
+    return serializeNeo4jValue(
+      record.get("developer"),
+    );
   } finally {
     await session.close();
   }

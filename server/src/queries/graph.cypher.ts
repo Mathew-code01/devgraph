@@ -3,50 +3,165 @@
 /**
  * DevGraph — Graph Traversal Cypher
  *
- * These queries are specifically designed to demonstrate
- * why a graph database is valuable.
+ * Graph traversal queries used by the graph explorer.
  */
 
-export const EXPLORE_DEVELOPER_GRAPH = (depth: number) => `
-  MATCH (start:Developer {id: $developerId})
+function normalizeDepth(
+  depth: number,
+): number {
+  if (!Number.isFinite(depth)) {
+    return 2;
+  }
 
-  MATCH path = (start)-[*1..${depth}]-(connected)
+  return Math.min(
+    Math.max(Math.floor(depth), 1),
+    5,
+  );
+}
 
-  WITH
-    path,
-    connected
+/**
+ * Explore the graph around a developer.
+ */
+export const EXPLORE_DEVELOPER_GRAPH = (
+  depth: number,
+) => {
+  const safeDepth =
+    normalizeDepth(depth);
 
-  RETURN
-    collect(DISTINCT {
-      id: startNode(path).id,
-      label: coalesce(
-        startNode(path).name,
-        startNode(path).title,
-        startNode(path).id
-      ),
-      type: head(labels(startNode(path))),
-      properties: properties(startNode(path))
-    }) +
-    collect(DISTINCT {
-      id: connected.id,
-      label: coalesce(
-        connected.name,
-        connected.title,
-        connected.id
-      ),
-      type: head(labels(connected)),
-      properties: properties(connected)
-    }) AS nodes,
+  return `
+    MATCH (start:Developer {id: $developerId})
 
-    collect(DISTINCT {
-      source: startNode(path).id,
-      target: endNode(path).id,
-      type: type(last(relationships(path)))
-    }) AS relationships
-`;
+    MATCH path =
+      (start)-[*1..${safeDepth}]-(connected)
 
+    WITH collect(DISTINCT path) AS paths
+
+    UNWIND paths AS path
+
+    UNWIND nodes(path) AS node
+
+    WITH
+      collect(
+        DISTINCT {
+          id: node.id,
+          label: coalesce(
+            node.name,
+            node.title,
+            node.id
+          ),
+          type: head(labels(node)),
+          properties: properties(node)
+        }
+      ) AS nodes,
+      paths
+
+    UNWIND paths AS relationshipPath
+
+    UNWIND relationships(
+      relationshipPath
+    ) AS relationship
+
+    WITH
+      nodes,
+      collect(
+        DISTINCT {
+          source: startNode(
+            relationship
+          ).id,
+
+          target: endNode(
+            relationship
+          ).id,
+
+          type: type(
+            relationship
+          )
+        }
+      ) AS relationships
+
+    RETURN
+      nodes,
+      relationships
+  `;
+};
+
+/**
+ * Explore the graph around a project.
+ */
+export const EXPLORE_PROJECT_GRAPH = (
+  depth: number,
+) => {
+  const safeDepth =
+    normalizeDepth(depth);
+
+  return `
+    MATCH (start:Project {id: $projectId})
+
+    MATCH path =
+      (start)-[*1..${safeDepth}]-(connected)
+
+    WITH collect(DISTINCT path) AS paths
+
+    UNWIND paths AS path
+
+    UNWIND nodes(path) AS node
+
+    WITH
+      collect(
+        DISTINCT {
+          id: node.id,
+          label: coalesce(
+            node.name,
+            node.title,
+            node.id
+          ),
+          type: head(labels(node)),
+          properties: properties(node)
+        }
+      ) AS nodes,
+      paths
+
+    UNWIND paths AS relationshipPath
+
+    UNWIND relationships(
+      relationshipPath
+    ) AS relationship
+
+    WITH
+      nodes,
+      collect(
+        DISTINCT {
+          source: startNode(
+            relationship
+          ).id,
+
+          target: endNode(
+            relationship
+          ).id,
+
+          type: type(
+            relationship
+          )
+        }
+      ) AS relationships
+
+    RETURN
+      nodes,
+      relationships
+  `;
+};
+
+/**
+ * Find developers connected to a technology.
+ */
 export const FIND_DEVELOPERS_BY_TECHNOLOGY = `
-  MATCH (d:Developer)-[:WORKED_ON]->(p:Project)-[:USES]->(t:Technology)
+  MATCH
+    (d:Developer)
+    -[:WORKED_ON]->
+    (p:Project)
+    -[:USES]->
+    (t:Technology)
+
   WHERE t.id = $technologyId
 
   RETURN DISTINCT {
@@ -58,10 +173,20 @@ export const FIND_DEVELOPERS_BY_TECHNOLOGY = `
   ORDER BY developer.name
 `;
 
+/**
+ * Find technologies sharing projects.
+ */
 export const FIND_RELATED_TECHNOLOGIES = `
-  MATCH (t:Technology {id: $technologyId})
+  MATCH
+    (t:Technology {
+      id: $technologyId
+    })
 
-  MATCH (t)<-[:USES]-(p:Project)-[:USES]->(related:Technology)
+  MATCH
+    (t)<-[:USES]-
+    (p:Project)
+    -[:USES]->
+    (related:Technology)
 
   WHERE related.id <> t.id
 
@@ -70,9 +195,14 @@ export const FIND_RELATED_TECHNOLOGIES = `
     related.name AS name,
     count(DISTINCT p) AS sharedProjects
 
-  ORDER BY sharedProjects DESC, related.name
+  ORDER BY
+    sharedProjects DESC,
+    related.name
 `;
 
+/**
+ * Graph node overview.
+ */
 export const GET_GRAPH_OVERVIEW = `
   MATCH (n)
 
@@ -82,10 +212,16 @@ export const GET_GRAPH_OVERVIEW = `
 
   UNWIND labels AS label
 
-  RETURN label, sum(count) AS count
+  RETURN
+    label,
+    sum(count) AS count
+
   ORDER BY count DESC
 `;
 
+/**
+ * Graph relationship overview.
+ */
 export const GET_GRAPH_RELATIONSHIP_OVERVIEW = `
   MATCH ()-[r]->()
 

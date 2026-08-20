@@ -20,30 +20,10 @@ import {
   GET_PROJECT_BY_ID,
 } from "../queries/projects.cypher.js";
 
-/**
- * Safely converts Neo4j values into numbers.
- */
-function toNumber(value: unknown): number {
-  if (neo4j.isInt(value)) {
-    return value.toNumber();
-  }
-
-  if (typeof value === "number") {
-    return Number.isFinite(value)
-      ? value
-      : 0;
-  }
-
-  if (typeof value === "string") {
-    const parsed = Number(value);
-
-    return Number.isFinite(parsed)
-      ? parsed
-      : 0;
-  }
-
-  return 0;
-}
+import {
+  serializeNeo4jValue,
+  toNumber,
+} from "../utils/neo4j.js";
 
 /**
  * Retrieves a paginated list of projects.
@@ -61,27 +41,20 @@ export async function getProjects(
     );
 
     const safeLimit = Math.min(
-      Math.max(
-        1,
-        Math.trunc(limit),
-      ),
+      Math.max(1, Math.trunc(limit)),
       100,
     );
 
     const skip =
-      (safePage - 1) *
-      safeLimit;
+      (safePage - 1) * safeLimit;
 
-    const result =
-      await session.run(
-        GET_PROJECTS,
-        {
-          skip: neo4j.int(skip),
-          limit: neo4j.int(
-            safeLimit,
-          ),
-        },
-      );
+    const result = await session.run(
+      GET_PROJECTS,
+      {
+        skip: neo4j.int(skip),
+        limit: neo4j.int(safeLimit),
+      },
+    );
 
     const countResult =
       await session.run(
@@ -97,11 +70,64 @@ export async function getProjects(
         )
       : 0;
 
+    const projects = result.records.map(
+      (record: Neo4jRecord) => {
+        const project =
+          serializeNeo4jValue(
+            record.get("project"),
+          ) as Record<string, unknown>;
+
+        return {
+          id:
+            typeof project.id === "string"
+              ? project.id
+              : String(project.id ?? ""),
+
+          name:
+            typeof project.name === "string"
+              ? project.name
+              : String(project.name ?? ""),
+
+          description:
+            typeof project.description === "string"
+              ? project.description
+              : null,
+
+          url:
+            typeof project.url === "string"
+              ? project.url.trim() || null
+              : null,
+
+          status:
+            typeof project.status === "string"
+              ? project.status
+              : null,
+
+          technologies:
+            Array.isArray(project.technologies)
+              ? project.technologies
+              : [],
+
+          developers:
+            Array.isArray(project.developers)
+              ? project.developers
+              : [],
+
+          domains:
+            Array.isArray(project.domains)
+              ? project.domains
+              : [],
+
+          companies:
+            Array.isArray(project.companies)
+              ? project.companies
+              : [],
+        };
+      },
+    );
+
     return {
-      data: result.records.map(
-        (record: Neo4jRecord) =>
-          record.get("project"),
-      ),
+      data: projects,
 
       pagination: {
         page: safePage,
@@ -142,9 +168,57 @@ export async function getProjectById(
       return null;
     }
 
-    return record.get(
-      "project",
-    );
+    const project =
+      serializeNeo4jValue(
+        record.get("project"),
+      ) as Record<string, unknown>;
+
+    return {
+      id:
+        typeof project.id === "string"
+          ? project.id
+          : String(project.id ?? ""),
+
+      name:
+        typeof project.name === "string"
+          ? project.name
+          : String(project.name ?? ""),
+
+      description:
+        typeof project.description === "string"
+          ? project.description
+          : null,
+
+      url:
+        typeof project.url === "string"
+          ? project.url.trim() || null
+          : null,
+
+      status:
+        typeof project.status === "string"
+          ? project.status
+          : null,
+
+      technologies:
+        Array.isArray(project.technologies)
+          ? project.technologies
+          : [],
+
+      developers:
+        Array.isArray(project.developers)
+          ? project.developers
+          : [],
+
+      domains:
+        Array.isArray(project.domains)
+          ? project.domains
+          : [],
+
+      companies:
+        Array.isArray(project.companies)
+          ? project.companies
+          : [],
+    };
   } finally {
     await session.close();
   }

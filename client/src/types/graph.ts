@@ -50,3 +50,4 @@ export interface RelatedTechnology {
   name: string;
   sharedProjects: number;
 }
+

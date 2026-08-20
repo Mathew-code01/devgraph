@@ -9,9 +9,21 @@ export interface DeveloperReference {
   name: string;
 }
 
+export interface DeveloperProject {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface DeveloperCompany {
+  id: string;
+  name: string;
+}
+
 export interface Developer {
   id: string;
   name: string;
+
   title?: string;
   location?: string;
   avatar?: string;
@@ -21,14 +33,7 @@ export interface Developer {
 
   technologies: DeveloperReference[];
 
-  projects: Array<{
-    id: string;
-    name: string;
-    description?: string;
-  }>;
+  projects: DeveloperProject[];
 
-  companies?: Array<{
-    id: string;
-    name: string;
-  }>;
+  companies?: DeveloperCompany[];
 }

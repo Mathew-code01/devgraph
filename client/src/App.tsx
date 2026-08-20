@@ -19,7 +19,6 @@ import DeveloperDetailsPage from "./pages/DeveloperDetailsPage.js";
 import ProjectsPage from "./pages/ProjectsPage.js";
 import ProjectDetailsPage from "./pages/ProjectDetailsPage.js";
 import TechnologiesPage from "./pages/TechnologiesPage.js";
-import SkillsPage from "./pages/SkillsPage.js";
 import GraphExplorerPage from "./pages/GraphExplorerPage.js";
 import NotFoundPage from "./pages/NotFoundPage.js";
 
@@ -51,7 +50,7 @@ function App() {
             element={<TechnologiesPage />}
           />
 
-          <Route path="/skills" element={<SkillsPage />} />
+         
 
           <Route path="/graph" element={<GraphExplorerPage />} />
 

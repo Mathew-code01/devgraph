@@ -4,26 +4,16 @@
  * DevGraph — CognoDB / Neo4j Driver
  *
  * Responsibility:
- * - Create the official Neo4j JavaScript driver.
- * - Provide database sessions.
- * - Verify connectivity.
+ * - Create and manage the Neo4j driver.
+ * - Provide isolated database sessions.
+ * - Verify database connectivity.
  * - Close the driver during application shutdown.
- *
- * Architecture:
- *
- * Express
- *    ↓
- * Service
- *    ↓
- * Neo4j Driver
- *    ↓
- * CognoDB
  */
 
 import neo4j, {
-  Driver,
-  Session,
-  SessionConfig,
+  type Driver,
+  type Session,
+  type SessionConfig,
 } from "neo4j-driver";
 
 import { env } from "../config/env.js";
@@ -57,9 +47,7 @@ export function createSession(
 }
 
 export async function verifyDatabaseConnection(): Promise<void> {
-  const databaseDriver = getDriver();
-
-  await databaseDriver.verifyConnectivity();
+  await getDriver().verifyConnectivity();
 }
 
 export async function closeDatabaseConnection(): Promise<void> {

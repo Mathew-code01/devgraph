@@ -6,10 +6,23 @@
  * Responsibility:
  * - Centralize all HTTP communication.
  * - Keep components free from raw fetch() calls.
+ * - Expose developer, project, technology and graph endpoints.
  */
 
+import type { Developer } from "../types/developer";
+
+import type {
+  GraphData,
+  GraphOverview,
+  RelatedTechnology,
+  Technology,
+} from "../types/graph";
+
+import type { Project } from "../types/project";
+
 const API_URL = (
-  import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"
+  import.meta.env.VITE_API_URL ??
+  "http://localhost:5000/api"
 ).replace(/\/+$/, "");
 
 export interface ApiResponse<T> {
@@ -30,7 +43,10 @@ export interface PaginatedResponse<T> {
   message?: string;
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+async function request<T>(
+  path: string,
+  options?: RequestInit,
+): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
@@ -65,101 +81,84 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export const api = {
   developers: {
-    list: (
-      page = 1,
-      limit = 20,
-      search = "",
-    ) =>
-      request<
-        PaginatedResponse<
-          import("../types/developer").Developer
-        >
-      >(
+    list: (page = 1, limit = 20, search = "") =>
+      request<PaginatedResponse<Developer>>(
         `/developers?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
       ),
 
     get: (id: string) =>
-      request<
-        ApiResponse<
-          import("../types/developer").Developer
-        >
-      >(`/developers/${id}`),
+      request<ApiResponse<Developer>>(
+        `/developers/${encodeURIComponent(id)}`,
+      ),
   },
 
   projects: {
     list: (page = 1, limit = 20) =>
-      request<
-        PaginatedResponse<
-          import("../types/project").Project
-        >
-      >(
+      request<PaginatedResponse<Project>>(
         `/projects?page=${page}&limit=${limit}`,
       ),
 
     get: (id: string) =>
-      request<
-        ApiResponse<
-          import("../types/project").Project
-        >
-      >(`/projects/${id}`),
+      request<ApiResponse<Project>>(
+        `/projects/${encodeURIComponent(id)}`,
+      ),
   },
 
   technologies: {
     list: () =>
-      request<
-        ApiResponse<
-          import("../types/graph").Technology[]
-        >
-      >("/technologies"),
+      request<ApiResponse<Technology[]>>(
+        "/technologies",
+      ),
 
     get: (id: string) =>
-      request<
-        ApiResponse<
-          import("../types/graph").Technology
-        >
-      >(`/technologies/${id}`),
+      request<ApiResponse<Technology>>(
+        `/technologies/${encodeURIComponent(id)}`,
+      ),
   },
 
   graph: {
-    developer: (
-      id: string,
-      depth = 2,
-    ) =>
-      request<
-        ApiResponse<
-          import("../types/graph").GraphData
-        >
-      >(
-        `/graph/developers/${id}?depth=${depth}`,
+    /**
+     * Developer graph
+     */
+    developer: (id: string, depth = 2) =>
+      request<ApiResponse<GraphData>>(
+        `/graph/developers/${encodeURIComponent(id)}?depth=${depth}`,
       ),
 
+    /**
+     * Project graph
+     */
+    project: (projectId: string, depth = 2) =>
+      request<ApiResponse<GraphData>>(
+        `/graph/projects/${encodeURIComponent(projectId)}?depth=${depth}`,
+      ),
+
+    /**
+     * Graph overview
+     */
     overview: () =>
-      request<
-        ApiResponse<
-          import("../types/graph").GraphOverview
-        >
-      >("/graph/overview"),
-
-    developersByTechnology: (
-      technologyId: string,
-    ) =>
-      request<
-        ApiResponse<
-          import("../types/developer").Developer[]
-        >
-      >(
-        `/graph/technology/${technologyId}/developers`,
+      request<ApiResponse<GraphOverview>>(
+        "/graph/overview",
       ),
 
-    relatedTechnologies: (
-      technologyId: string,
-    ) =>
-      request<
-        ApiResponse<
-          import("../types/graph").RelatedTechnology[]
-        >
-      >(
-        `/graph/technology/${technologyId}/related`,
+    /**
+     * Developers connected to a technology
+     */
+    developersByTechnology: (technologyId: string) =>
+      request<ApiResponse<Developer[]>>(
+        `/graph/technology/${encodeURIComponent(
+          technologyId,
+        )}/developers`,
+      ),
+
+    /**
+     * Technologies related to another technology
+     */
+    relatedTechnologies: (technologyId: string) =>
+      request<ApiResponse<RelatedTechnology[]>>(
+        `/graph/technology/${encodeURIComponent(
+          technologyId,
+        )}/related`,
       ),
   },
 

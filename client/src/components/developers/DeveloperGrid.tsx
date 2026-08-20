@@ -9,10 +9,29 @@ interface DeveloperGridProps {
 }
 
 function DeveloperGrid({ developers }: DeveloperGridProps) {
+  const safeDevelopers = Array.isArray(developers)
+    ? developers.filter(Boolean)
+    : [];
+
+  if (safeDevelopers.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="developer-grid">
-      {developers.map((developer) => (
-        <DeveloperCard key={developer.id} developer={developer} />
+    <div
+      className="
+        grid
+        grid-cols-1
+        gap-5
+        md:grid-cols-2
+        xl:grid-cols-3
+      "
+    >
+      {safeDevelopers.map((developer, index) => (
+        <DeveloperCard
+          key={developer.id || `developer-${index}`}
+          developer={developer}
+        />
       ))}
     </div>
   );

@@ -1,48 +1,65 @@
 // client/src/hooks/useDevelopers.ts
 
-/**
- * DevGraph — Developer Data Hook
- */
-
-import {
-  useQuery,
-} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { api } from "../lib/api";
 
-export function useDevelopers(
-  page = 1,
-  limit = 20,
-  search = "",
-) {
+/**
+ * Developer list
+ */
+export function useDevelopers(page = 1, limit = 20, search = "") {
   return useQuery({
-    queryKey: [
-      "developers",
-      page,
-      limit,
-      search,
-    ],
+    queryKey: ["developers", page, limit, search],
 
-    queryFn: () =>
-      api.developers.list(
-        page,
-        limit,
-        search,
-      ),
+    queryFn: () => api.developers.list(page, limit, search),
 
     staleTime: 30_000,
   });
 }
 
-export function useDeveloper(id?: string) {
+/**
+ * Single developer
+ */
+export function useDeveloper(developerId?: string) {
   return useQuery({
-    queryKey: ["developer", id],
+    queryKey: ["developer", developerId],
 
-    queryFn: () =>
-      api.developers.get(id!),
+    queryFn: () => {
+      if (!developerId) {
+        throw new Error("Developer ID is required.");
+      }
 
-    enabled: Boolean(id),
+      return api.developers.get(developerId);
+    },
 
-    staleTime: 60_000,
+    enabled: Boolean(developerId),
+
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * Project graph
+ *
+ * The query is disabled until a project ID
+ * is available.
+ */
+export function useProjectGraph(projectId?: string, depth = 2) {
+  return useQuery({
+    queryKey: ["project-graph", projectId, depth],
+
+    queryFn: () => {
+      if (!projectId) {
+        throw new Error("Project ID is required.");
+      }
+
+      return api.graph.project(projectId, depth);
+    },
+
+    enabled: Boolean(projectId),
+
+    staleTime: 30_000,
+
+    retry: 1,
   });
 }
