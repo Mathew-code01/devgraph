@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local tooling
+.cache/
+.parcel-cache/
+
+# Vite
+client/dist/
+client/node_modules
+client/.env
+
+# Server build
+server/dist/
+server/node_modules
+server/.env
