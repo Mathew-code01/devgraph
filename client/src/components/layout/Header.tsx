@@ -10,7 +10,7 @@ const titles: Record<string, string> = {
   "/developers": "Developers",
   "/projects": "Projects",
   "/technologies": "Technologies",
-  "/skills": "Skills",
+ 
   "/graph": "Graph Explorer",
 };
 
@@ -33,9 +33,7 @@ function getPageTitle(pathname: string): string {
     return "Technology";
   }
 
-  if (pathname.startsWith("/skills/")) {
-    return "Skill";
-  }
+  
 
   return "DevGraph";
 }

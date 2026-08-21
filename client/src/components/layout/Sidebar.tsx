@@ -1,6 +1,6 @@
 import {
   BarChart3,
-  BrainCircuit,
+
   Code2,
   FolderKanban,
   GitBranch,
@@ -60,11 +60,7 @@ const navigation: NavigationSection[] = [
         path: "/technologies",
         icon: Layers3,
       },
-      {
-        label: "Skills",
-        path: "/skills",
-        icon: BrainCircuit,
-      },
+      
     ],
   },
 ];
